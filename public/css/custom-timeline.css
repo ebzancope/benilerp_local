@@ -1,0 +1,17 @@
+.timeline {
+  border-left: 2px solid #e0e0e0;
+  padding-left: 12px;
+}
+.timeline li {
+  position: relative;
+}
+.timeline li::before {
+  content: '';
+  position: absolute;
+  left: -9px;
+  top: 6px;
+  width: 14px;
+  height: 14px;
+  background: #30a300;
+  border-radius: 50%;
+}
