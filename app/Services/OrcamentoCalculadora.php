@@ -8,24 +8,40 @@ class OrcamentoCalculadora
 {
     public function recalcular(Orcamento $orcamento): Orcamento
     {
-        $subtotal = 0;
+        $subtotalItens = 0;
+
+        // Recalcula cada item do orçamento (faturamento)
         foreach ($orcamento->itens as $item) {
             $valorBruto = $item->quantidade * $item->preco_unitario;
             $descPct = max(0, $item->desconto_percentual);
             $descVal = max(0, $item->desconto_valor);
             $total = $valorBruto;
+
             if ($descPct > 0) {
                 $total -= ($valorBruto * ($descPct / 100));
             }
             if ($descVal > 0) {
                 $total -= $descVal;
             }
+
             $item->total_item = max(0, round($total, 2));
             $item->save();
-            $subtotal += $item->total_item;
+
+            $subtotalItens += $item->total_item;
         }
 
-        $orcamento->valor_total = max(0, round($subtotal - $orcamento->desconto_total + $orcamento->acrescimo_total, 2));
+        $totalDespesas = 0;
+
+        // Recalcula cada despesa da obra
+        foreach ($orcamento->despesas as $despesa) {
+            $despesa->total = max(0, round(($despesa->quantidade ?? 0) * ($despesa->custo_unitario ?? 0), 2));
+            $despesa->save();
+            $totalDespesas += $despesa->total;
+        }
+
+        // Valor final = Faturamento - Desconto - Despesas
+        $orcamento->valor_total = max(0, round($subtotalItens - ($orcamento->desconto_total ?? 0) - $totalDespesas, 2));
+
         return $orcamento;
     }
 }

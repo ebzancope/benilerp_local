@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\OrcamentoRequest;
 use App\Models\Orcamento;
 use App\Models\OrcamentoItem;
+use App\Models\OrcamentoDespesa;
 use App\Models\Clieforne;
 use App\Services\OrcamentoCalculadora;
 use Illuminate\Http\Request;
@@ -93,8 +94,27 @@ class OrcamentoController extends Controller
             ]);
         }
 
+        // Salva despesas da obra
+        foreach ($request->despesas ?? [] as $i => $despesa) {
+            if (empty($despesa['tipo']) && empty($despesa['descricao'])) {
+                continue;
+            }
+
+            OrcamentoDespesa::create([
+                'orcamento_id'   => $orcamento->id,
+                'tipo'           => $despesa['tipo'] ?? null,
+                'descricao'      => $despesa['descricao'] ?? null,
+                'quantidade'     => $despesa['quantidade'] ?? 0,
+                'unidade'        => $despesa['unidade'] ?? null,
+                'custo_unitario' => $despesa['custo_unitario'] ?? 0,
+                'total'          => ($despesa['quantidade'] ?? 0) * ($despesa['custo_unitario'] ?? 0),
+                'obs'            => $despesa['obs'] ?? null,
+                'ordem'          => $i,
+            ]);
+        }
+
         // Recalcula e salva o valor_total
-        $orcamento = $calc->recalcular($orcamento->fresh('itens'));
+        $orcamento = $calc->recalcular($orcamento->fresh('itens', 'despesas'));
         $orcamento->save();
 
         return redirect()->route('orcamentos.show', $orcamento->id)
@@ -103,13 +123,13 @@ class OrcamentoController extends Controller
 }
     public function show($id)
     {
-        $orcamento = Orcamento::with('cliente','itens')->findOrFail($id);
+        $orcamento = Orcamento::with('cliente','itens','despesas')->findOrFail($id);
         return view('orcamentos.show', compact('orcamento'));
     }
 
     public function edit($id)
     {
-        $orcamento = Orcamento::with('itens')->findOrFail($id);
+        $orcamento = Orcamento::with('itens', 'despesas')->findOrFail($id);
         $clientes = Clieforne::orderBy('nome')->get();
         return view('orcamentos.edit', compact('orcamento','clientes'));
     }
@@ -117,7 +137,7 @@ class OrcamentoController extends Controller
  public function update(OrcamentoRequest $request, $id, OrcamentoCalculadora $calc)
 {
     return DB::transaction(function () use ($request, $id, $calc) {
-        $orcamento = Orcamento::with('itens')->findOrFail($id);
+        $orcamento = Orcamento::with('itens', 'despesas')->findOrFail($id);
 
         $orcamento->fill([
             'cliente_id'          => $request->cliente_id,
@@ -152,8 +172,27 @@ class OrcamentoController extends Controller
             ]);
         }
 
+        // ressincroniza despesas
+        $orcamento->despesas()->delete();
+        foreach ($request->despesas ?? [] as $i => $despesa) {
+            if (empty($despesa['tipo']) && empty($despesa['descricao'])) {
+                continue;
+            }
+
+            $orcamento->despesas()->create([
+                'tipo'           => $despesa['tipo'] ?? null,
+                'descricao'      => $despesa['descricao'] ?? null,
+                'quantidade'     => $despesa['quantidade'] ?? 0,
+                'unidade'        => $despesa['unidade'] ?? null,
+                'custo_unitario' => $despesa['custo_unitario'] ?? 0,
+                'total'          => ($despesa['quantidade'] ?? 0) * ($despesa['custo_unitario'] ?? 0),
+                'obs'            => $despesa['obs'] ?? null,
+                'ordem'          => $i,
+            ]);
+        }
+
         // recalcula e salva o valor_total
-        $orcamento = $calc->recalcular($orcamento->fresh('itens'));
+        $orcamento = $calc->recalcular($orcamento->fresh('itens', 'despesas'));
         $orcamento->save();
 
         return redirect()->route('orcamentos.show', $orcamento->id)
@@ -261,13 +300,13 @@ private function gerarNumero(): string
 
     public function print($id)
 {
-    $orcamento = Orcamento::with('cliente','itens')->findOrFail($id);
+    $orcamento = Orcamento::with('cliente','itens','despesas')->findOrFail($id);
     return view('orcamentos.print', compact('orcamento'));
 }
 
 public function downloadPdf($id)
 {
-    $orcamento = Orcamento::with('cliente','itens')->findOrFail($id);
+    $orcamento = Orcamento::with('cliente','itens','despesas')->findOrFail($id);
 
     $pdf = Pdf::loadView('orcamentos.pdf', compact('orcamento'))
         ->setPaper('a4', 'portrait');

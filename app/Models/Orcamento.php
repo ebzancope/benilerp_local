@@ -30,4 +30,25 @@ class Orcamento extends Model
     {
         return $this->hasMany(OrcamentoItem::class);
     }
+
+    public function despesas()
+    {
+        return $this->hasMany(OrcamentoDespesa::class);
+    }
+
+    /**
+     * Calcula o total de despesas
+     */
+    public function getTotalDespesasAttribute()
+    {
+        return $this->despesas->sum('total') ?? 0;
+    }
+
+    /**
+     * Calcula o lucro/prejuízo
+     */
+    public function getLucroAttribute()
+    {
+        return $this->valor_total - $this->total_despesas;
+    }
 }

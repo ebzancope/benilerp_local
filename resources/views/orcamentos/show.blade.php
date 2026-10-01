@@ -31,8 +31,7 @@
             <div class="col-md-3">
                 <div class="text-muted">Status</div>
                 <span
-                    class="badge bg-{{ \App\Http\Controllers\OrcamentoController::statusBadgeClass($orcamento->status) }}">{{
-                    ucfirst($orcamento->status) }}</span>
+                    class="badge bg-{{ \App\Http\Controllers\OrcamentoController::statusBadgeClass($orcamento->status) }}">{{  ucfirst($orcamento->status) }}</span>
             </div>
             <div class="col-md-3">
                 <div class="text-muted">Emissão</div>
@@ -49,9 +48,10 @@
         </div>
     </div>
 
+    <!-- ITENS DO ORÇAMENTO -->
     <div class="card mb-3">
         <div class="card-body">
-            <h6>Itens</h6>
+            <h6><i class="fas fa-list"></i> Itens do orçamento</h6>
             <div class="table-responsive">
                 <table class="table table-sm align-middle">
                     <thead>
@@ -76,11 +76,75 @@
                             <td>R$ {{ number_format($it->preco_unitario,2,',','.') }}</td>
                             <td>{{ $it->desconto_percentual }}%</td>
                             <td>R$ {{ number_format($it->desconto_valor,2,',','.') }}</td>
-                            <td>R$ {{ number_format($it->total_item,2,',','.') }}</td>
+                            <td><strong>R$ {{ number_format($it->total_item,2,',','.') }}</strong></td>
                         </tr>
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- DESPESAS DA OBRA -->
+    @if($orcamento->despesas->count() > 0)
+    <div class="card mb-3" style="border-left: 4px solid #dc3545;">
+        <div class="card-body">
+            <h6><i class="fas fa-hammer"></i> Despesas da obra</h6>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Descrição</th>
+                            <th>Qtd</th>
+                            <th>Unid</th>
+                            <th>Preço Unit.</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($orcamento->despesas as $d)
+                        <tr>
+                            <td>{{ $d->tipo }}</td>
+                            <td>{{ $d->descricao }}</td>
+                            <td>{{ $d->quantidade }}</td>
+                            <td>{{ $d->unidade }}</td>
+                            <td>R$ {{ number_format($d->custo_unitario,2,',','.') }}</td>
+                            <td><strong>R$ {{ number_format($d->total,2,',','.') }}</strong></td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- RESUMO FINANCEIRO -->
+    <div class="card mb-3" style="background-color: #fafafa;">
+        <div class="card-body">
+            <h6>Resumo Financeiro</h6>
+            <div class="row mt-3">
+                <div class="col-md-3">
+                    <div class="text-muted small">Faturamento (Itens)</div>
+                    <div class="h6 text-success">R$ {{ number_format($orcamento->itens->sum('total_item'),2,',','.') }}</div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-muted small">Despesas da obra</div>
+                    <div class="h6 text-danger">R$ {{ number_format($orcamento->despesas->sum('total'),2,',','.') }}</div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-muted small">Desconto</div>
+                    <div class="h6">R$ {{ number_format($orcamento->desconto_total,2,',','.') }}</div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-muted small fw-bold">Resultado Final</div>
+                    @php
+                    $resultado = $orcamento->itens->sum('total_item') - $orcamento->despesas->sum('total') - $orcamento->desconto_total;
+                    $classe = $resultado >= 0 ? 'text-success' : 'text-danger';
+                    @endphp
+                    <div class="h6 {{ $classe }} fw-bold">R$ {{ number_format($resultado,2,',','.') }}</div>
+                </div>
             </div>
         </div>
     </div>
