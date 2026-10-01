@@ -42,7 +42,7 @@ $isEdit = isset($orcamento) && $orcamento->exists;
 </div>
 
 <!-- SEÇÃO: ITENS DO ORÇAMENTO (FATURAMENTO) -->
-<div class="card mb-3">
+<div class="card mb-3 shadow-sm">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-2">
             <h6 class="mb-0"><i class="fas fa-list"></i> Itens do orçamento</h6>
@@ -86,14 +86,14 @@ $isEdit = isset($orcamento) && $orcamento->exists;
 </div>
 
 <!-- SEÇÃO: DESPESAS DA OBRA -->
-<div class="card mb-3" style="border-left: 4px solid #dc3545;">
+<div class="card mb-3 shadow-sm" style="border-left: 4px solid #dc3545;">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-2">
             <h6 class="mb-0"><i class="fas fa-hammer"></i> Despesas da obra</h6>
             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" onclick="addDespesa()">Adicionar
                 despesa</button>
         </div>
-        <p class="text-muted small mb-3">Ex: Terraplanagem = 3000m² × R$ 300/m² = R$ 900.000</p>
+        <p class="text-muted small mb-3">Ex.: Terraplanagem = 3000m² × R$ 300,00 = R$ 900.000,00</p>
         <div class="table-responsive">
             <table class="table table-sm align-middle" id="despesas-table">
                 <thead>
@@ -123,28 +123,44 @@ $isEdit = isset($orcamento) && $orcamento->exists;
 </div>
 
 <!-- RESUMO FINANCEIRO -->
-<div class="row g-3 mb-3">
-    <div class="col-md-2">&nbsp;</div>
+<div class="card mb-3 shadow-sm">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0"><i class="fas fa-chart-line"></i> Resumo financeiro</h6>
+            <span class="badge bg-secondary rounded-pill">ERP - Gestão operacional</span>
+        </div>
 
-    <div class="col-md-2">
-        <label class="form-label fw-bold">Faturamento (R$)</label>
-        <input type="number" step="0.01" id="valorOrcamento" class="form-control rounded-pill text-success fw-bold" readonly style="background-color: #e8f5e9;">
-    </div>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="border rounded-4 p-3 bg-success-subtle h-100">
+                    <div class="small text-success fw-semibold">Faturamento</div>
+                    <input type="number" step="0.01" id="valorOrcamento" class="form-control rounded-pill text-success fw-bold mt-2" readonly>
+                </div>
+            </div>
 
-    <div class="col-md-2">
-        <label class="form-label fw-bold">Despesas (R$)</label>
-        <input type="number" step="0.01" id="totalDespesas" class="form-control rounded-pill text-danger fw-bold" readonly style="background-color: #ffebee;">
-    </div>
+            <div class="col-md-3">
+                <div class="border rounded-4 p-3 bg-danger-subtle h-100">
+                    <div class="small text-danger fw-semibold">Despesas da obra</div>
+                    <input type="number" step="0.01" id="totalDespesas" class="form-control rounded-pill text-danger fw-bold mt-2" readonly>
+                </div>
+            </div>
 
-    <div class="col-md-2">
-        <label class="form-label fw-bold">Desconto (R$)</label>
-        <input type="number" step="0.01" name="desconto_total"
-            value="{{ old('desconto_total', $orcamento->desconto_total ?? 0) }}" class="form-control rounded-pill">
-    </div>
+            <div class="col-md-3">
+                <div class="border rounded-4 p-3 bg-warning-subtle h-100">
+                    <div class="small text-warning fw-semibold">Desconto</div>
+                    <input type="number" step="0.01" name="desconto_total"
+                        value="{{ old('desconto_total', $orcamento->desconto_total ?? 0) }}"
+                        class="form-control rounded-pill mt-2">
+                </div>
+            </div>
 
-    <div class="col-md-4">
-        <label class="form-label fw-bold">Resultado Final - Lucro/Prejuízo (R$)</label>
-        <input type="number" step="0.01" id="totalGeral" class="form-control rounded-pill fw-bold" readonly style="font-size: 1.1em; background-color: #fff3e0;">
+            <div class="col-md-3">
+                <div class="border rounded-4 p-3 bg-primary-subtle h-100">
+                    <div class="small text-primary fw-semibold">Resultado final</div>
+                    <input type="number" step="0.01" id="totalGeral" class="form-control rounded-pill fw-bold mt-2" readonly>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -260,12 +276,11 @@ $isEdit = isset($orcamento) && $orcamento->exists;
         const resultado = totalItens - desconto - totalDespesas;
         if (totalGeral) {
             totalGeral.value = resultado.toFixed(2);
-            // Muda cor conforme resultado
             if (resultado >= 0) {
-                totalGeral.style.color = '#2e7d32';
+                totalGeral.style.color = '#0d6efd';
                 totalGeral.style.backgroundColor = '#e8f5e9';
             } else {
-                totalGeral.style.color = '#c62828';
+                totalGeral.style.color = '#dc3545';
                 totalGeral.style.backgroundColor = '#ffebee';
             }
         }
@@ -280,3 +295,4 @@ $isEdit = isset($orcamento) && $orcamento->exists;
         calcularTotais();
     });
 </script>
+
