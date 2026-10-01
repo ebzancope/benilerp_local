@@ -117,11 +117,10 @@
                 </p>
             </div>
             <div class="col" style="border-radius: 10px 10px 10px 10px;background-color: #dcecd3; color: #30a300; ">
- <p>&nbsp;</p>
+                <p>&nbsp;</p>
                 <p style="color: #931414;font-size: 22px;text-align: center;">
                     {{ $orcamento->numero }}
                 </p>
-
             </div>
         </div>
         <hr>
@@ -190,17 +189,76 @@
                     </tbody>
                 </table>
             </div>
-            @if($orcamento->desconto_total > 0)
-            <div style="font-size: 15px;text-align:right; margin-top:12px; color: rgb(90, 86, 86);">
-                Desconto: R$ {{ number_format($orcamento->desconto_total,2,',','.') }}
+
+            <!-- SEÇÃO: DESPESAS DA OBRA -->
+            @if($orcamento->despesas->count() > 0)
+            <div style="margin-top: 20px;">
+                <hr>
+                <p style="color:#8b0000; font-weight: bold;">Despesas da Obra</p>
+                <table class="c table-striped">
+                    <thead>
+                        <tr style="background-color: #ffebee;color: #b71c1c; border-bottom: 2px solid #b71c1c;">
+                            <th style="font-size: 12px;">Item</th>
+                            <th style="font-size: 12px;">Tipo</th>
+                            <th style="font-size: 12px;">Descrição</th>
+                            <th class="text-right" style="font-size: 12px;">Qtd</th>
+                            <th class="text-right" style="font-size: 12px;">Unid.</th>
+                            <th class="text-right" style="font-size: 12px;">Valor Uni.</th>
+                            <th class="text-right" style="font-size: 12px;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($orcamento->despesas as $d)
+                        <tr>
+                            <td style="font-size: 12px;">{{ $loop->iteration }}</td>
+                            <td style="font-size: 12px;">{{ $d->tipo }}</td>
+                            <td style="font-size: 12px;">{{ $d->descricao }}</td>
+                            <td class="text-right" style="font-size: 12px;">{{ number_format($d->quantidade,2,',','.') }}</td>
+                            <td class="text-right" style="font-size: 12px;">{{ $d->unidade }}</td>
+                            <td class="text-right" style="font-size: 12px;">R$ {{ number_format($d->custo_unitario,2,',','.') }}</td>
+                            <td class="text-right" style="font-size: 12px; font-weight: bold;">R$ {{ number_format($d->total,2,',','.') }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
             @endif
-            <h5
-                style="border-radius: 10px 10px 10px 10px;text-align:right; margin-top:12px;background-color: #eaf4e5; color: rgb(90, 86, 86);">
-                Total: R$
-                {{
-                number_format($orcamento->valor_total,2,',','.')
-                }}</h5>
+
+            <!-- RESUMO FINANCEIRO -->
+            @php
+                $totalItens = $orcamento->itens->sum('total_item');
+                $totalDespesas = $orcamento->despesas->sum('total');
+                $desconto = $orcamento->desconto_total ?? 0;
+                $resultado = $totalItens - $totalDespesas - $desconto;
+            @endphp
+
+            <div style="margin-top: 20px;">
+                <table style="width: 100%;">
+                    <tr>
+                        <td style="width: 50%; font-size: 12px;">&nbsp;</td>
+                        <td style="width: 50%; text-align: right;">
+                            @if($desconto > 0)
+                            <div style="font-size: 15px; color: rgb(90, 86, 86); margin-bottom: 10px;">
+                                Desconto: R$ {{ number_format($desconto,2,',','.') }}
+                            </div>
+                            @endif
+                            @if($totalDespesas > 0)
+                            <div style="font-size: 15px; color: #b71c1c; margin-bottom: 10px;">
+                                Despesas da obra: R$ {{ number_format($totalDespesas,2,',','.') }}
+                            </div>
+                            @endif
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- TOTAL E RESULTADO -->
+            <h5 style="border-radius: 10px 10px 10px 10px;text-align:right; margin-top:12px;background-color: #eaf4e5; color: rgb(90, 86, 86);padding: 10px;">
+                <strong>Total Faturamento: R$ {{ number_format($totalItens,2,',','.') }}</strong>
+            </h5>
+            <h5 style="border-radius: 10px 10px 10px 10px;text-align:right; margin-top:8px;background-color: {{ $resultado >= 0 ? '#e8f5e9' : '#ffebee' }}; color: {{ $resultado >= 0 ? '#1b5e20' : '#b71c1c' }};padding: 10px;">
+                <strong>Lucro / Prejuízo: R$ {{ number_format($resultado,2,',','.') }}</strong>
+            </h5>
         </div>
         @if($orcamento->condicoes_pagamento != '')
         <table>
@@ -242,53 +300,6 @@
                 <td style="font-size: 12px;">
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 </td>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <td style="font-size: 12px;">&nbsp;</td>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <td style="font-size: 12px;">&nbsp;</td>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <td style="font-size: 12px;">&nbsp;</td>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <td style="font-size: 12px;">&nbsp;</td>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <td style="font-size: 12px;">&nbsp;</td>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <td style="font-size: 12px;">&nbsp;</td>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <td style="font-size: 12px;">&nbsp;</td>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <td style="font-size: 12px;">&nbsp;</td>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <td style="font-size: 12px;">&nbsp;</td>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <td style="font-size: 12px;">&nbsp;</td>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <td style="font-size: 12px;">&nbsp;</td>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <td style="font-size: 12px;">&nbsp;</td>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <th style="font-size: 12px;">&nbsp;</th>
-                <td style="font-size: 12px;">&nbsp;</td>
                 <th style="font-size: 12px;">&nbsp;</th>
                 <th style="font-size: 12px;">&nbsp;</th>
                 <td style="font-size: 12px;">&nbsp;</td>
